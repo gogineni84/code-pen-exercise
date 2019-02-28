@@ -1,0 +1,192 @@
+"use strict";
+
+class Calculator {
+  
+  add(value1: number, value2: number): number {
+    return value1 + value2;
+  }
+
+  subtract(value1: number, value2: number): number {
+    return value1 - value2;
+  }
+
+  multiply(value1: number, value2: number): number {
+    return value1 * value2;
+  }
+
+  divide(value1: number, value2: number) : number {
+    if(value2 === 0) {
+      return NaN;
+    } else {
+      return value1 / value2;
+    }
+  }
+
+   calculate(fn) {
+    return new Promise((resolve, reject) => {
+      if(typeof fn === 'undefined') {
+       reject(NaN);
+      }
+      const result  = fn.call(this);
+        resolve(result);
+   
+     });
+  }
+
+}
+
+class ScientificCalculator extends Calculator {
+  
+  sin(value: number) {
+    
+    return Math.sin(value);
+  }
+  
+  cos(value: number) {
+    
+    return Math.cos(value);
+  }
+  
+  tan(value: number) {
+    
+    return Math.tan(value);
+  }
+  
+  log(value: number) {
+    
+    return Math.log(value);
+  }
+  
+}
+
+function   withSummation(sum)  {
+ this.sum =  (...sum)=> { return sum.reduce((previous, current)=> { return previous + current; })}
+ }
+
+// Setup Mocha and Chai
+mocha.setup( "bdd" );
+var expect = chai.expect;
+
+/**
+ * 1. Write a Calculator class that matches this specification
+ */
+describe( "Calculator", function(){
+  var calculator;
+  
+  beforeEach( function(){
+    calculator = new Calculator();
+  } );
+ 
+  it( "adds 1 and 2", function(){
+    expect( calculator.add( 1, 2 ) ).to.equal( 3 );
+  } );
+ 
+  it( "subtracts 2 from 9", function(){
+    expect( calculator.subtract( 9, 2 ) ).to.equal( 7 );
+  } );
+ 
+  it( "multiplies 4 and 3", function(){
+    expect( calculator.multiply( 4, 3 ) ).to.equal( 12 );
+  } );
+ 
+  it( "divides 10 by 2", function(){
+    expect( calculator.divide( 10, 2 ) ).to.equal( 5 );
+  } );
+     
+  it( "does not divide by 0", function(){
+    expect( calculator.divide( 5, 0 ) ).to.be.NaN;
+  } );
+} );
+
+/**
+ * 2. Write a ScientificCalculator class that matches this specification
+ */
+describe( "ScientificCalculator", function(){
+  var calculator;
+  
+  beforeEach( function(){
+    calculator = new ScientificCalculator();
+  } );
+  
+  it( "extends Calculator", function(){
+    expect( calculator ).to.be.instanceOf( Calculator );
+    expect( calculator ).to.be.instanceOf( ScientificCalculator );
+  } );
+ 
+  it( "returns the sine of PI / 2", function(){
+    expect( calculator.sin( Math.PI / 2 ) ).to.equal( 1 );
+  } );
+
+  it( "returns the cosine of PI", function(){
+    expect( calculator.cos( Math.PI ) ).to.equal( -1 );
+  } );
+ 
+  it( "returns the tangent of 0", function(){
+    expect( calculator.tan( 0 ) ).to.equal( 0 );
+  } );
+ 
+  it( "returns the logarithm of 1", function(){
+    expect( calculator.log( 1 ) ).to.equal( 0 );
+  } );
+} );
+
+/**
+ * 3. Write a withSummation functional mixin that matches this specification
+ */
+describe( "withSummation", function(){
+  it( "should be a function", function(){
+    expect( withSummation ).to.be.a( "function" );
+  } );
+ 
+  it( "returns the Σ of 1 through 4", function(){
+    var calculator = new Calculator();
+    expect( calculator ).to.not.have.property( "sum" );
+    withSummation.call( calculator );
+    expect( calculator ).to.have.property( "sum" ).that.is.a( "function" );
+    expect( calculator.sum( 1, 2, 3, 4 ) ).to.equal( 10 );
+  } );
+} );
+
+/**
+ * 4. Add a calculate function to Calculator that matches this specification
+ */
+describe( "Calculator.calculate", function(){
+  var calculator;
+  
+  beforeEach( function(){
+    calculator = new Calculator();
+  } );
+  
+  it( "returns a promise", function(){
+    var calculating = calculator.calculate( function(){} );
+    expect( calculating ).to.be.instanceOf( Promise );
+  } );
+     
+  it( "resolves when the calculation succeeds", function( done ){
+    var calculating = calculator.calculate( function(){
+
+      expect( this ).to.equal( calculator );
+           
+      var result = 0;
+      
+      result += this.add( 1, 2 );
+      result += this.add( 3, 4 );
+      return result;
+    } );
+    calculating.then( function( result ){
+      expect( result ).to.equal( 10 );
+      done();
+    } );
+  } );
+  
+  it( "rejects when the calculation fails", function( done ){
+    var calculating = calculator.calculate();
+    calculating.catch( function( result ){
+      expect( result ).to.be.NaN;
+      done();
+    } );
+  } );
+} );
+
+// Run the tests
+mocha.run();
